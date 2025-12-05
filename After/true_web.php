@@ -1,4 +1,4 @@
-<?php
+<?php //inside after folder
 $DEFAULT_USER = 'Alex';
 $DEFAULT_PASS = '1234';
 $error = '';

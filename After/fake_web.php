@@ -1,4 +1,4 @@
-<?php
+<?php //inside after folder
 // When credentials are submitted, create a hidden form to auto-submit to true_web.php
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = isset($_POST['username']) ? trim($_POST['username']) : '';
