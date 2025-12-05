@@ -6,7 +6,7 @@
     <title>Document</title>
 </head>
 <body>
-    <a href="true_web.php">True Web</a> <br>
-    <a href="fake_web.php">Fake Web</a>
+    <a href="Before.php"> Before implentation of counter measurement for MITM </a> <br>
+    <a href="After.php"> After implementation of counter measurement for MITM </a>
 </body>
 </html>

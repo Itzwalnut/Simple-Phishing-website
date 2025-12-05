@@ -6,6 +6,7 @@
     <title>Document</title>
 </head>
 <body>
-    
+    <a href="After/true_web.php">True Web</a> <br>
+    <a href="After/fake_web.php">Fake Web</a>
 </body>
 </html>
