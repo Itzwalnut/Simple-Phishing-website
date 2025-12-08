@@ -8,11 +8,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $username = isset($_POST['username']) ? trim($_POST['username']) : '';
   $password = isset($_POST['password']) ? $_POST['password'] : '';
 
-  if ($username === $DEFAULT_USER && $password === $DEFAULT_PASS) {
-    header('Location: true_mainpage.php');
-    exit;
+  // Check for hidden auth token (unique to true_web.php)
+  if (!isset($_POST['auth_token']) || $_POST['auth_token'] !== 'true_site') {
+    $error = 'Suspicious access detected. Please access the login page directly.';
   } else {
-    $error = 'Invalid username or password.';
+    // Check referer to detect potential redirection from fake sites
+    $expected_referer = 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+    if (!isset($_SERVER['HTTP_REFERER']) || strpos($_SERVER['HTTP_REFERER'], 'true_web.php') === false) {
+      $error = 'Access from an unexpected source detected. Ensure you are on the official site.';
+    } elseif ($username === $DEFAULT_USER && $password === $DEFAULT_PASS) {
+      header('Location: true_mainpage.php');
+      exit;
+    } else {
+      $error = 'Invalid username or password.';
+    }
   }
 }
 ?>
@@ -28,6 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
   <form method="post" action="<?= htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, 'UTF-8') ?>">
+    <input type="hidden" name="auth_token" value="true_site">
     <label for="username">Username:</label>
     <input type="text" id="username" name="username" required autofocus>
 
