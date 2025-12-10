@@ -1,6 +1,8 @@
 <?php //inside after folder
+session_start();
 $DEFAULT_USER = 'Alex';
 $DEFAULT_PASS = '1234';
+$MFA_CODE = '123456'; // Hardcoded MFA code for simplicity
 $error = '';
 
 // Handle POST login
@@ -10,15 +12,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   // Check for hidden auth token (unique to true_web.php)
   if (!isset($_POST['auth_token']) || $_POST['auth_token'] !== 'true_site') {
-    $error = 'Suspicious access detected. Please access the login page directly.';
+    $error = 'You may access from phishing website. Please check that you are visiting the correct site.';
   } else {
     // Check referer to detect potential redirection from fake sites
     $expected_referer = 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
     if (!isset($_SERVER['HTTP_REFERER']) || strpos($_SERVER['HTTP_REFERER'], 'true_web.php') === false) {
-      $error = 'Access from an unexpected source detected. Ensure you are on the official site.';
+      $error = 'Suspicious access detected. Please access the login page directly.';
+    } elseif (isset($_POST['mfa_code'])) {
+      // MFA step
+      if ($_POST['mfa_code'] === $MFA_CODE) {
+        header('Location: true_mainpage.php');
+        $_SESSION['mfa_required'] = false;
+        exit;
+      } else {
+        $error = 'Invalid MFA code.';
+      }
     } elseif ($username === $DEFAULT_USER && $password === $DEFAULT_PASS) {
-      header('Location: true_mainpage.php');
-      exit;
+      // Password correct, require MFA
+      $_SESSION['mfa_required'] = true;
     } else {
       $error = 'Invalid username or password.';
     }
@@ -36,16 +47,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <h1>Login to True Web</h1>
 
 
-  <form method="post" action="<?= htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, 'UTF-8') ?>">
-    <input type="hidden" name="auth_token" value="true_site">
-    <label for="username">Username:</label>
-    <input type="text" id="username" name="username" required autofocus>
+  <?php if (isset($_SESSION['mfa_required']) && $_SESSION['mfa_required']): ?>
+    <p>Enter your MFA code:</p>
+    <form method="post" action="<?= htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, 'UTF-8') ?>">
+      <input type="hidden" name="auth_token" value="true_site">
+      <label for="mfa_code">MFA Code:</label>
+      <input type="text" id="mfa_code" name="mfa_code" required autofocus>
+      <input type="submit" value="Verify">
+    </form>
+  <?php else: ?>
+    <form method="post" action="<?= htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, 'UTF-8') ?>">
+      <input type="hidden" name="auth_token" value="true_site">
+      <label for="username">Username:</label>
+      <input type="text" id="username" name="username" required autofocus>
 
-    <label for="password">Password:</label>
-    <input type="password" id="password" name="password" required>
+      <label for="password">Password:</label>
+      <input type="password" id="password" name="password" required>
 
-    <input type="submit" value="Login">
-  </form>
+      <input type="submit" value="Login">
+    </form>
+  <?php endif; ?>
 
   <?php if (!empty($error)): ?>
     <script>
